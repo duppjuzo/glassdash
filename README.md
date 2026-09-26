@@ -44,7 +44,7 @@ Windows 液态玻璃桌面仪表盘：功耗、充电、续航与 AGY / Codex �
 
 - 设置与统计：`%LOCALAPPDATA%\GlassDash`。更新版本、移动解压目录不会丢失这些记录。
 - 启动时可迁移程序旁的旧 `battery_stats.json` / `quota_config.json`，原文件保留。
-- Codex 复用当前用户的 `~/.codex/auth.json`；AGY 复用原有本地或 Google 登录。
+- Codex 复用当前用户的 `~/.codex/auth.json`；AGY 本地模式复用已登录的应用。Google 云端登录需先在额度设置中填写你有权使用的 OAuth 客户端 ID 和密钥，发行包不内置客户端密钥。
 - 软件包不包含个人账号、令牌、历史电池统计或截图；正常桌面采样只在内存中处理。
 - 依赖版本与第三方说明随发行包提供，见 `build-info.json`、`licenses/` 和 [第三方说明](THIRD_PARTY_NOTICES.md)。
 
@@ -58,6 +58,7 @@ quota_dashboard.py   额度后台刷新、设置、双环绘制
 quota_fetchers.py    沿用 QuotaRing 的账号与额度读取
 battery_stats.py     电池周期、续航和持久统计
 app_paths.py         版本、用户数据目录、自启命令
+oauth_config.py      本机 Google OAuth 客户端配置
 diagnostics.py       打包程序自检
 glass_preview.py     合成预览背景
 tests/               无桌面捕获的回归检查
@@ -66,4 +67,3 @@ docs/                构建说明
 ```
 
 本地 `backup/`、`probe/` 保留历史备份和研究资料，不进入发布源码包。`build/`、`dist/` 是构建产物，`release/` 是交付文件。
-
