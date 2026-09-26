@@ -65,5 +65,3 @@ tests/               无桌面捕获的回归检查
 packaging/           构建、封装与源码归档脚本
 docs/                构建说明
 ```
-
-本地 `backup/`、`probe/` 保留历史备份和研究资料，不进入发布源码包。`build/`、`dist/` 是构建产物，`release/` 是交付文件。
