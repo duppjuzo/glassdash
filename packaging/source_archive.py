@@ -12,7 +12,7 @@ FILES = ['glassdash.py', 'glass_pages.py', 'liquid_glass.py', 'quota_dashboard.p
          'glass_preview.py', 'requirements.txt', 'requirements-build.txt', 'requirements-lock.txt',
          'README.md', '使用说明.md', 'THIRD_PARTY_NOTICES.md', 'CHANGELOG.md', '.gitignore',
          'docs/BUILD.md', 'packaging/GlassDash.spec', 'packaging/build.py',
-         'packaging/source_archive.py', 'tests/battery_check.py', 'tests/integration_check.py']
+         'packaging/source_archive.py', 'tests/battery_check.py', 'tests/integration_check.py', 'tests/oauth_check.py']
 FILES.extend(str(file.relative_to(ROOT)) for file in (ROOT/'packaging'/'licenses').rglob('*.txt'))
 release = ROOT/'release'
 release.mkdir(exist_ok=True)

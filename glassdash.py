@@ -681,6 +681,8 @@ def main():
     else:
         win.hide()
 
+    if '--settings' in sys.argv:
+        QTimer.singleShot(0, tray.quota_settings)
     return app.exec()
 
 

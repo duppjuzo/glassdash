@@ -5,8 +5,8 @@ import threading
 from pathlib import Path
 from PySide6.QtCore import QObject, Signal, QTimer, Qt, QRectF, QPointF
 from PySide6.QtGui import QColor, QPen, QFont, QConicalGradient
-from PySide6.QtWidgets import QDialog, QFormLayout, QComboBox, QSpinBox, QPushButton, QLabel, QLineEdit
-from oauth_config import google_client, save_google_client
+from PySide6.QtWidgets import QDialog, QFormLayout, QComboBox, QSpinBox, QPushButton, QLabel, QLineEdit, QFileDialog
+from oauth_config import google_client, save_google_client, import_google_client
 import quota_fetchers as source
 from app_paths import state_path, APP_DIR
 
@@ -127,10 +127,13 @@ class QuotaSettings(QDialog):
         self.client_secret.setPlaceholderText('已配置，留空保留' if configured else 'Google OAuth 客户端密钥')
         form.addRow('Google 客户端 ID', self.client_id)
         form.addRow('Google 客户端密钥', self.client_secret)
-        login = QPushButton('登录 Google / Antigravity')
-        login.clicked.connect(self.login)
-        form.addRow(login)
-        self.status = QLabel('复用现有登录；账号令牌不会复制到项目中。')
+        import_button = QPushButton('导入 Google OAuth 配置文件…')
+        import_button.clicked.connect(self.import_client)
+        form.addRow(import_button)
+        self.login_button = QPushButton('登录 Google / Antigravity')
+        self.login_button.clicked.connect(self.login)
+        form.addRow(self.login_button)
+        self.status = QLabel('已配置，可打开浏览器登录。' if configured else '首次登录需要 Google 桌面应用的 OAuth 配置；可导入 JSON 文件或填写上方两项。')
         self.status.setWordWrap(True)
         form.addRow(self.status)
         controller.login_result.connect(self.login_finished)
@@ -139,7 +142,24 @@ class QuotaSettings(QDialog):
         form.addRow(save)
 
     def login_finished(self, ok, message):
+        self.login_button.setEnabled(True)
+        self.login_button.setText('登录 Google / Antigravity')
         self.status.setText('登录成功' if ok else message)
+
+    def import_client(self):
+        path, _ = QFileDialog.getOpenFileName(self, '选择 Google 桌面应用 OAuth 配置', '', 'JSON 配置 (*.json)')
+        if not path:
+            return
+        try:
+            import_google_client(path)
+        except (OSError, ValueError, TypeError):
+            self.status.setText('导入失败，请选择包含客户端 ID 和密钥的桌面应用 OAuth JSON 文件。')
+            return
+        configured = google_client() or {}
+        self.client_id.setText(configured.get('client_id', ''))
+        self.client_secret.clear()
+        self.client_secret.setPlaceholderText('已配置，留空保留')
+        self.status.setText('配置已导入，可以登录。')
 
     def save_client(self):
         existing = google_client() or {}
@@ -163,6 +183,15 @@ class QuotaSettings(QDialog):
 
     def login(self):
         if self.save_client():
+            if not google_client():
+                self.status.setText('尚未配置 Google OAuth。请先导入桌面应用的 JSON 配置，或填写客户端 ID 和密钥，然后登录。')
+                return
+            if self.controller.login_busy:
+                self.status.setText('正在等待浏览器授权，请完成现有登录。')
+                return
+            self.login_button.setEnabled(False)
+            self.login_button.setText('等待浏览器授权…')
+            self.status.setText('正在打开默认浏览器，请在浏览器中完成授权（最多等待 5 分钟）。')
             self.controller.login()
 
     def save(self):

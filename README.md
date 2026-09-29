@@ -4,7 +4,7 @@ Windows 液态玻璃桌面仪表盘：功耗、充电、续航与 AGY / Codex �
 
 ## 下载与运行
 
-**[下载最新版本](https://github.com/zzj8888888zzj-prog/glassdash/releases/latest)** · [ARM64 包](https://github.com/zzj8888888zzj-prog/glassdash/releases/download/v1.0.0/GlassDash-1.0.0-windows-arm64.zip) · [x64 包](https://github.com/zzj8888888zzj-prog/glassdash/releases/download/v1.0.0/GlassDash-1.0.0-windows-x64.zip)
+**[下载最新版本](https://github.com/duppjuzo/glassdash/releases/latest)** · [ARM64 包](https://github.com/duppjuzo/glassdash/releases/download/v1.0.1/GlassDash-1.0.1-windows-arm64.zip) · [x64 包](https://github.com/duppjuzo/glassdash/releases/download/v1.0.1/GlassDash-1.0.1-windows-x64.zip)
 
 | 版本 | 适用电脑 | 启动文件 |
 |---|---|---|
@@ -65,3 +65,5 @@ tests/               无桌面捕获的回归检查
 packaging/           构建、封装与源码归档脚本
 docs/                构建说明
 ```
+
+本地 `backup/`、`probe/` 保留历史备份和研究资料，不进入发布源码包。`build/`、`dist/` 是构建产物，`release/` 是交付文件。

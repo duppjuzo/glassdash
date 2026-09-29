@@ -21,13 +21,14 @@ release = ROOT / 'release'
 build = ROOT / 'build' / arch
 build.mkdir(parents=True, exist_ok=True)
 release.mkdir(exist_ok=True)
+dist_root = ROOT / 'dist' / VERSION
 command = [sys.executable, '-m', 'PyInstaller', '--noconfirm', '--clean',
-           '--distpath', str(ROOT/'dist'), '--workpath', str(build),
+           '--distpath', str(dist_root), '--workpath', str(build),
            str(ROOT/'packaging'/'GlassDash.spec')]
 if '--package-only' not in sys.argv:
     with (build/'build.log').open('w', encoding='utf-8') as log:
         subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
-bundle = ROOT / 'dist' / name
+bundle = dist_root / name
 exe = bundle / (name+'.exe')
 assert pe_arch(exe) == arch
 for item in ('README.md', '使用说明.md', 'THIRD_PARTY_NOTICES.md', 'CHANGELOG.md'):

@@ -27,9 +27,9 @@ python packaging/source_archive.py
 
 ## 产物与验证
 
-- `dist/GlassDash-arm64/`、`dist/GlassDash-x64/`：解压即用程序目录。
-- `release/GlassDash-1.0.0-windows-{arch}.zip`：可分发 ZIP。
-- `release/GlassDash-1.0.0-source.zip`：显式白名单源码包。
+- `dist/{版本}/GlassDash-arm64/`、`dist/{版本}/GlassDash-x64/`：解压即用程序目录。
+- `release/GlassDash-{版本}-windows-{arch}.zip`：可分发 ZIP。
+- `release/GlassDash-{版本}-source.zip`：显式白名单源码包。
 - `*.sha256`：对应 ZIP 的 SHA-256。
 - `build/{arch}/build.log`：构建日志。
 - `build/{arch}/self-test.json`：打包后的 exe 自检结果。

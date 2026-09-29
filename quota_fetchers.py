@@ -453,7 +453,14 @@ def agy_cloud_login() -> tuple[bool, str]:
 
     class Handler(http.server.BaseHTTPRequestHandler):
         def do_GET(self):
-            q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            parsed = urllib.parse.urlparse(self.path)
+            if parsed.path != '/callback':
+                self.send_error(404)
+                return
+            q = urllib.parse.parse_qs(parsed.query)
+            if not secrets.compare_digest((q.get('state') or [''])[0], state):
+                self.send_error(400, 'Invalid OAuth state')
+                return
             if q.get("code"):
                 holder["code"] = q["code"][0]
                 holder["state"] = (q.get("state") or [""])[0]
@@ -464,7 +471,7 @@ def agy_cloud_login() -> tuple[bool, str]:
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
             ok = "code" in holder
-            msg = "✅ 登录成功，可以关闭此页面回到 QuotaRing" if ok else "❌ 登录未完成，可关闭此页面重试"
+            msg = "授权已收到，请回到 GlassDash 查看登录结果" if ok else "登录未完成，可关闭此页面重试"
             self.wfile.write(f"<meta charset='utf-8'><body style='font-size:20px;text-align:center;padding-top:40px'>{msg}</body>".encode())
 
         def log_message(self, *a):
@@ -473,7 +480,7 @@ def agy_cloud_login() -> tuple[bool, str]:
     srv = http.server.HTTPServer(("127.0.0.1", 0), Handler)
     port = srv.server_address[1]
     redirect = f"http://127.0.0.1:{port}/callback"
-    threading.Thread(target=srv.handle_request, daemon=True).start()
+    srv.timeout = 0.5
 
     auth = AGY_OAUTH["auth_url"] + "?" + urllib.parse.urlencode({
         "client_id": client["client_id"],
@@ -484,12 +491,18 @@ def agy_cloud_login() -> tuple[bool, str]:
         "prompt": "consent",
         "state": state,
     })
-    webbrowser.open(auth)
-
-    deadline = time.time() + 300
-    while time.time() < deadline and not holder:
-        time.sleep(0.4)
-    srv.server_close()
+    try:
+        try:
+            opened = webbrowser.open(auth)
+        except (OSError, webbrowser.Error):
+            opened = False
+        if not opened:
+            return False, "无法打开默认浏览器，请在 Windows 中设置默认浏览器后重试。"
+        deadline = time.monotonic() + 300
+        while time.monotonic() < deadline and not holder:
+            srv.handle_request()
+    finally:
+        srv.server_close()
     if not holder:
         return False, "授权超时（5 分钟内未完成浏览器授权）"
     if holder.get("error"):
