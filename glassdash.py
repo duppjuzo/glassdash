@@ -19,7 +19,7 @@ from ctypes import wintypes
 import winreg
 
 from PySide6.QtCore import Qt, QTimer, QPointF, QRectF, QObject, Signal
-from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QPen, QFont, QCursor, QPolygonF
+from PySide6.QtGui import QIcon, QPixmap, QImage, QPainter, QColor, QPen, QFont, QCursor, QPolygonF
 from PySide6.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu
 from liquid_glass import DesktopSampler, LiquidGlassRenderer
 from quota_dashboard import QuotaController, QuotaSettings
@@ -422,7 +422,7 @@ class GlassWindow(GlassPages, QWidget):
         size = (round(self.width() * dpr), round(self.height() * dpr))
         if self._optics is None or (self._optics.width, self._optics.height) != size:
             self._optics = LiquidGlassRenderer(*size, dpr=dpr, radius=self.RADIUS,
-                                               optical_scale=0.5, blur_radius=0.7)
+                                               optical_scale=0.5, blur_radius=1.35)
         background = self._sampler.latest(self._capture_box)
         sx = self._scale * (1 + self._stretch)
         sy = self._scale * (1 - self._stretch * 0.65)
@@ -433,7 +433,31 @@ class GlassWindow(GlassPages, QWidget):
         p.scale(sx, sy)
         p.translate(-self.width() / 2, -self.height() / 2)
         p.drawImage(QPointF(0, 0), frame)
-        self._paint_pages(p)
+        # On near-white desktops, the faint frost alone cannot separate white
+        # labels from the background. Shift their ink toward slate only there.
+        brightness = float(background[::8, ::8, :3].mean()) if background is not None else 0
+        ink_shift = max(0.0, min(1.0, (brightness - 190) / 45))
+        if ink_shift:
+            page = QImage(*size, QImage.Format_ARGB32_Premultiplied)
+            page.setDevicePixelRatio(dpr)
+            page.fill(Qt.transparent)
+            layer = QPainter(page)
+            layer.setRenderHint(QPainter.Antialiasing, True)
+            layer.setRenderHint(QPainter.TextAntialiasing, True)
+            self._paint_pages(layer)
+            layer.end()
+            slate = page.copy()
+            tint = QPainter(slate)
+            tint.setCompositionMode(QPainter.CompositionMode_SourceIn)
+            tint.fillRect(slate.rect(), QColor(57, 67, 77))
+            tint.end()
+            p.setOpacity(1 - ink_shift)
+            p.drawImage(QPointF(0, 0), page)
+            p.setOpacity(ink_shift)
+            p.drawImage(QPointF(0, 0), slate)
+            p.setOpacity(1)
+        else:
+            self._paint_pages(p)
         self._paint_close_button(p, background, dpr)
         p.end()
 

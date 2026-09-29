@@ -4,7 +4,7 @@ import shutil
 import sys
 from pathlib import Path
 
-VERSION = '1.0.1'
+VERSION = '1.02beta'
 SOURCE_DIR = Path(__file__).resolve().parent
 APP_DIR = Path(sys.executable).resolve().parent if getattr(sys, 'frozen', False) else SOURCE_DIR
 

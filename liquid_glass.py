@@ -151,6 +151,9 @@ class LiquidGlassRenderer:
         length = np.sqrt(ox * ox + oy * oy)
         sdf = length + np.minimum(np.maximum(qx, qy), 0) - radius
         self.distance = -sdf / optical_pixel
+        # Keep the optical bevel clear; diffusion settles on the flat face.
+        frost = np.clip((self.distance - 10) / 18, 0, 1)
+        self.frost_mask = frost * frost * (3 - 2 * frost)
         nx = np.where(length > 1e-5, ox / np.maximum(length, 1e-5), (qx > qy).astype(np.float32)) * np.sign(px)
         ny = np.where(length > 1e-5, oy / np.maximum(length, 1e-5), (qy >= qx).astype(np.float32)) * np.sign(py)
         coverage = np.clip(0.5 - sdf, 0, 1)
@@ -221,10 +224,10 @@ class LiquidGlassRenderer:
                 if self._background_key is not background:
                     softened = np.asarray(Image.fromarray(background).filter(
                         ImageFilter.GaussianBlur(self.blur_radius * self.dpr)), dtype=np.float32)
-                    # A mostly blurred sample plus clear transmission and a tiny
-                    # white veil: texture is softened without turning milky.
+                    # Gentle diffusion, with enough clear transmission to retain
+                    # the movement and detail behind the glass.
                     self._soft_background = np.clip(
-                        (softened * 0.78 + background * 0.22) * 0.978 + 255 * 0.022,
+                        (softened * 0.88 + background * 0.12) * 0.978 + 255 * 0.022,
                         0, 255).astype(np.uint8)
                     self._background_key = background
                 background = self._soft_background
@@ -264,6 +267,16 @@ class LiquidGlassRenderer:
         if BRIGHTNESS_GAIN != 1.0:
             rgba[..., :3] = np.clip(
                 rgba[..., :3].astype(np.float32) * BRIGHTNESS_GAIN, 0, 255).astype(np.uint8)
+        if background is not None and background.shape[:2] == (self.height, self.width):
+            # Bright desktops need a little neutral density behind white labels.
+            # Apply it after the optical highlights so their clear rim stays bright.
+            brightness = float(background[::8, ::8, :3].mean())
+            density = np.clip((brightness - 145) / 90, 0, 1) * 0.14
+            if density > 0:
+                attenuation = 1 - self.frost_mask * density
+                rgba[..., :3] = np.clip(
+                    rgba[..., :3].astype(np.float32) * attenuation[..., None],
+                    0, 255).astype(np.uint8)
         image = QImage(rgba.data, self.width, self.height, self.width * 4, QImage.Format_RGBA8888).copy()
         image.setDevicePixelRatio(self.dpr)
         return image

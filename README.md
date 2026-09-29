@@ -6,6 +6,8 @@ Windows 液态玻璃桌面仪表盘：功耗、充电、续航与 AGY / Codex �
 
 **[下载最新版本](https://github.com/duppjuzo/glassdash/releases/latest)** · [ARM64 包](https://github.com/duppjuzo/glassdash/releases/download/v1.0.1/GlassDash-1.0.1-windows-arm64.zip) · [x64 包](https://github.com/duppjuzo/glassdash/releases/download/v1.0.1/GlassDash-1.0.1-windows-x64.zip)
 
+**1.02beta 测试版**：[ARM64](https://github.com/duppjuzo/glassdash/releases/download/1.02beta/GlassDash-1.02beta-windows-arm64.zip) · [x64](https://github.com/duppjuzo/glassdash/releases/download/1.02beta/GlassDash-1.02beta-windows-x64.zip) · [源码](https://github.com/duppjuzo/glassdash/tree/1.02beta)。本次调整玻璃中心的轻微扩散，并改善亮色背景上的文字对比度。
+
 | 版本 | 适用电脑 | 启动文件 |
 |---|---|---|
 | Windows ARM64 | 骁龙等 Windows on ARM 设备 | `GlassDash-arm64.exe` |
